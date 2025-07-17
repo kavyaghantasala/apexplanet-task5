@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextNews – Minimal News Dashboard</title>
+    <style>
+        /* Base Styles */
+        :root {
+            --primary: #1a73e8;
+            --secondary: #f1f3f4;
+            --text: #202124;
+            --light-text: #5f6368;
+            --border: #dadce0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        /* Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 1.5rem 1rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+        
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            padding-left: 0.5rem;
+        }
+        
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-link {
+            display: block;
+            padding: 0.75rem 0.5rem;
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+        
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 500;
+        }
+        
+        .date-display {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        /* News Grid */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .news-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+        
+        .news-category {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--secondary);
+            color: var(--primary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+        
+        .news-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .news-excerpt {
+            color: var(--light-text);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--light-text);
+            font-size: 0.85rem;
+        }
+        
+        /* Trending Section */
+        .trending-section {
+            margin-top: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .trending-list {
+            list-style: none;
+        }
+        
+        .trending-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .trending-item:last-child {
+            border-bottom: none;
+        }
+        
+        .trending-rank {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: var(--secondary);
+            color: var(--primary);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            margin-right: 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .nav-menu {
+                display: flex;
+                overflow-x: auto;
+                padding-bottom: 1rem;
+            }
+            
+            .nav-item {
+                margin-right: 1rem;
+                margin-bottom: 0;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">TextNews</div>
+            <nav>
+                <div class="nav-item">
+                    <a class="nav-link active" onclick="showCategory('headlines')">📰 Headlines</a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" onclick="showCategory('discover')">🔍 Discover</a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" onclick="showCategory('business')">📊 Business</a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" onclick="showCategory('technology')">⚡ Technology</a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" onclick="showCategory('health')">🏥 Health</a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" onclick="showCategory('sports')">⚽ Sports</a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" onclick="showCategory('entertainment')">🎭 Entertainment</a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" onclick="showCategory('bookmarks')">🔖 Bookmarks</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="header">
+                <h1 class="page-title" id="category-title">Today's Headlines</h1>
+                <div class="date-display">Wednesday, June 12, 2024</div>
+            </div>
+
+            <!-- News Grid -->
+            <div class="news-grid" id="news-container">
+                <!-- News articles will be dynamically inserted here -->
+            </div>
+
+            <!-- Trending Section -->
+            <section class="trending-section">
+                <h2 class="section-title">Trending Now</h2>
+                <ul class="trending-list">
+                    <li class="trending-item">
+                        <span class="trending-rank">1</span>
+                        <strong>Stock Markets Reach All-Time High</strong> amid positive economic indicators
+                    </li>
+                    <li class="trending-item">
+                        <span class="trending-rank">2</span>
+                        <strong>New Privacy Legislation</strong> proposed that would impact social media companies
+                    </li>
+                    <li class="trending-item">
+                        <span class="trending-rank">3</span>
+                        <strong>Transportation Strike</strong> enters third day with no resolution in sight
+                    </li>
+                    <li class="trending-item">
+                        <span class="trending-rank">4</span>
+                        <strong>Celebrity Wedding</strong> breaks internet with surprise guest appearance
+                    </li>
+                    <li class="trending-item">
+                        <span class="trending-rank">5</span>
+                        <strong>Viral Challenge</strong> raises millions for charity in just 48 hours
+                    </li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // News data for each category
+        const newsData = {
+            headlines: [
+                {
+                    category: "Politics",
+                    title: "Global Summit Addresses Climate Change Initiatives",
+                    excerpt: "World leaders gather to discuss new policies aimed at reducing carbon emissions by 2030, with several countries committing to ambitious targets.",
+                    source: "The Daily Chronicle",
+                    time: "2h ago"
+                },
+                {
+                    category: "Technology",
+                    title: "New AI Model Demonstrates Human-Level Reasoning",
+                    excerpt: "Researchers unveil breakthrough in artificial intelligence that shows unprecedented capabilities in complex problem solving.",
+                    source: "Tech Frontiers",
+                    time: "5h ago"
+                },
+                {
+                    category: "Business",
+                    title: "Major Merger Creates New Market Leader",
+                    excerpt: "Two industry giants announce $45 billion deal that will reshape the competitive landscape across multiple sectors.",
+                    source: "Financial Times",
+                    time: "8h ago"
+                },
+                {
+                    category: "Health",
+                    title: "Breakthrough in Cancer Treatment Shows Promise",
+                    excerpt: "Clinical trials reveal new therapy achieving 78% remission rate in previously untreatable forms of the disease.",
+                    source: "Medical Advance",
+                    time: "1d ago"
+                },
+                {
+                    category: "Sports",
+                    title: "Underdog Team Wins Championship Against All Odds",
+                    excerpt: "In stunning upset, previously unranked squad defeats defending champions with last-minute victory.",
+                    source: "Sports Network",
+                    time: "3h ago"
+                },
+                {
+                    category: "Science",
+                    title: "Astronomers Discover Earth-Like Exoplanet",
+                    excerpt: "New findings suggest potentially habitable world located just 12 light years from our solar system.",
+                    source: "Cosmic Journal",
+                    time: "6h ago"
+                },
+                {
+                    category: "Environment",
+                    title: "Record Ice Melt in Arctic Raises Alarm",
+                    excerpt: "Satellite data shows unprecedented melting this season, with potential global climate impacts.",
+                    source: "Earth Watch",
+                    time: "4h ago"
+                },
+                {
+                    category: "Education",
+                    title: "Global Literacy Rates Reach Historic High",
+                    excerpt: "UNESCO reports 91% of world population now literate, with biggest gains in developing nations.",
+                    source: "Global Report",
+                    time: "7h ago"
+                },
+                {
+                    category: "Economy",
+                    title: "Central Banks Coordinate Interest Rate Cuts",
+                    excerpt: "Global financial institutions take synchronized action to stimulate slowing economic growth.",
+                    source: "Market Watch",
+                    time: "9h ago"
+                },
+                {
+                    category: "Transportation",
+                    title: "Hyperloop Test Reaches Record 760 mph",
+                    excerpt: "Virgin Hyperloop achieves new speed milestone in Nevada desert test track.",
+                    source: "Future Transit",
+                    time: "11h ago"
+                }
+            ],
+            health: [
+                {
+                    category: "Medical Research",
+                    title: "New Alzheimer's Drug Shows 40% Slower Cognitive Decline",
+                    excerpt: "Phase 3 trial results show promising results for patients in early stages of the disease.",
+                    source: "Neurology Today",
+                    time: "1h ago"
+                },
+                {
+                    category: "Public Health",
+                    title: "WHO Warns of New COVID Variant Spreading Rapidly",
+                    excerpt: "The EG.5 variant now accounts for 25% of global cases, though severity appears similar.",
+                    source: "Health Alert",
+                    time: "3h ago"
+                },
+                {
+                    category: "Nutrition",
+                    title: "Study Links Mediterranean Diet to 30% Lower Heart Disease Risk",
+                    excerpt: "Long-term research confirms significant cardiovascular benefits from this eating pattern.",
+                    source: "Nutrition Journal",
+                    time: "5h ago"
+                },
+                {
+                    category: "Mental Health",
+                    title: "Digital Therapy Apps Show Promise for Anxiety Treatment",
+                    excerpt: "Clinical trial finds some apps as effective as in-person therapy for mild to moderate cases.",
+                    source: "Mind Matters",
+                    time: "7h ago"
+                },
+                {
+                    category: "Pediatrics",
+                    title: "Childhood Vaccination Rates Rebound Post-Pandemic",
+                    excerpt: "CDC reports 95% coverage for key vaccines after concerning drop during COVID years.",
+                    source: "Pediatric News",
+                    time: "9h ago"
+                },
+                {
+                    category: "Oncology",
+                    title: "Blood Test Detects 50+ Cancer Types With 99% Accuracy",
+                    excerpt: "New liquid biopsy technology could revolutionize early cancer detection.",
+                    source: "Cancer Research",
+                    time: "11h ago"
+                },
+                {
+                    category: "Cardiology",
+                    title: "AI Predicts Heart Attacks Better Than Traditional Methods",
+                    excerpt: "Machine learning model analyzes retinal scans to assess cardiovascular risk.",
+                    source: "Heart Health",
+                    time: "13h ago"
+                },
+                {
+                    category: "Geriatrics",
+                    title: "Regular Exercise Shown to Add 5 Years to Life Expectancy",
+                    excerpt: "Study of 100,000 seniors confirms benefits of even moderate physical activity.",
+                    source: "Aging Well",
+                    time: "15h ago"
+                },
+                {
+                    category: "Endocrinology",
+                    title: "Breakthrough in Type 1 Diabetes Treatment Shows Promise",
+                    excerpt: "Experimental therapy preserves insulin production in newly diagnosed patients.",
+                    source: "Diabetes Care",
+                    time: "17h ago"
+                },
+                {
+                    category: "Epidemiology",
+                    title: "Global Life Expectancy Rises to 73.4 Years",
+                    excerpt: "WHO report shows steady gains despite pandemic setbacks in some regions.",
+                    source: "Global Health",
+                    time: "19h ago"
+                }
+            ],
+            technology: [
+                {
+                    category: "Artificial Intelligence",
+                    title: "GPT-5 Demonstrates Human-Level Creative Writing",
+                    excerpt: "OpenAI's latest model generates short stories indistinguishable from human authors.",
+                    source: "AI Weekly",
+                    time: "2h ago"
+                },
+                {
+                    category: "Quantum Computing",
+                    title: "Google Achieves Quantum Supremacy with 72-Qubit Processor",
+                    excerpt: "New benchmark solves problem impossible for classical supercomputers.",
+                    source: "Quantum News",
+                    time: "4h ago"
+                },
+                {
+                    category: "Cybersecurity",
+                    title: "Major Zero-Day Exploit Affects All Windows Versions",
+                    excerpt: "Microsoft issues emergency patch for critical vulnerability under active attack.",
+                    source: "Security Bulletin",
+                    time: "6h ago"
+                },
+                {
+                    category: "Space Tech",
+                    title: "NASA Tests Nuclear-Powered Rocket for Mars Missions",
+                    excerpt: "Successful ground test brings crewed Mars missions closer to reality.",
+                    source: "Space Frontier",
+                    time: "8h ago"
+                },
+                {
+                    category: "Robotics",
+                    title: "Humanoid Robot Learns to Cook by Watching Videos",
+                    excerpt: "Breakthrough in imitation learning could revolutionize domestic robotics.",
+                    source: "RoboTrends",
+                    time: "10h ago"
+                },
+                {
+                    category: "Blockchain",
+                    title: "Ethereum Completes Transition to Proof-of-Stake",
+                    excerpt: "The Merge finally happens, reducing energy consumption by 99.95%.",
+                    source: "Crypto Daily",
+                    time: "12h ago"
+                },
+                {
+                    category: "5G",
+                    title: "Next-Gen 6G Networks Promise 100x Faster Speeds",
+                    excerpt: "Early tests show potential for terabit-per-second wireless connections.",
+                    source: "Connectivity",
+                    time: "14h ago"
+                },
+                {
+                    category: "AR/VR",
+                    title: "Apple's Mixed Reality Headset Set for January Launch",
+                    excerpt: "Industry insiders reveal final specs and $3,000 price point.",
+                    source: "Reality Check",
+                    time: "16h ago"
+                },
+                {
+                    category: "Autonomous Vehicles",
+                    title: "Waymo Expands Driverless Taxi Service to 3 New Cities",
+                    excerpt: "Robotaxis now operating 24/7 in Phoenix, San Francisco and Austin.",
+                    source: "Auto Future",
+                    time: "18h ago"
+                },
+                {
+                    category: "Semiconductors",
+                    title: "1nm Chip Breakthrough Could Extend Moore's Law",
+                    excerpt: "IBM and Samsung develop new transistor design for next-generation chips.",
+                    source: "Chip Tech",
+                    time: "20h ago"
+                }
+            ],
+            sports: [
+                {
+                    category: "Football",
+                    title: "Underdog Team Wins Championship Against All Odds",
+                    excerpt: "In stunning upset, previously unranked squad defeats defending champions with last-minute victory.",
+                    source: "Sports Network",
+                    time: "1h ago"
+                },
+                {
+                    category: "Basketball",
+                    title: "Record-Breaking 3-Point Shooting in Finals Game",
+                    excerpt: "Point guard makes 12 three-pointers in single game, setting new playoff record.",
+                    source: "Hoops Daily",
+                    time: "3h ago"
+                },
+                {
+                    category: "Tennis",
+                    title: "Youngest Wimbledon Champion in 20 Years Crowned",
+                    excerpt: "19-year-old phenom defeats defending champion in straight sets.",
+                    source: "Court Side",
+                    time: "5h ago"
+                },
+                {
+                    category: "Olympics",
+                    title: "2028 LA Olympics Reveals New Sports Lineup",
+                    excerpt: "Cricket, flag football, and squash added to official program.",
+                    source: "Olympic News",
+                    time: "7h ago"
+                },
+                {
+                    category: "Soccer",
+                    title: "Record Transfer Fee Shattered for Young Striker",
+                    excerpt: "English club pays €220 million for 21-year-old Brazilian sensation.",
+                    source: "World Football",
+                    time: "9h ago"
+                },
+                {
+                    category: "Golf",
+                    title: "Comeback Victory at The Masters After 5-Year Slump",
+                    excerpt: "Former champion regains form to win green jacket in playoff.",
+                    source: "Fairway News",
+                    time: "11h ago"
+                },
+                {
+                    category: "Baseball",
+                    title: "Perfect Game Thrown for First Time in 5 Years",
+                    excerpt: "Pitcher retires all 27 batters faced in masterful performance.",
+                    source: "Diamond Report",
+                    time: "13h ago"
+                },
+                {
+                    category: "Swimming",
+                    title: "Three World Records Fall at World Championships",
+                    excerpt: "New marks set in 100m freestyle, 200m backstroke, and 4x100m medley.",
+                    source: "Aquatics Weekly",
+                    time: "15h ago"
+                },
+                {
+                    category: "Cycling",
+                    title: "Tour de France Route Features Record Climbing",
+                    excerpt: "2024 edition will include most vertical meters in race history.",
+                    source: "Peloton",
+                    time: "17h ago"
+                },
+                {
+                    category: "Esports",
+                    title: "Largest Prize Pool in Esports History Announced",
+                    excerpt: "$50 million tournament planned for popular MOBA game.",
+                    source: "Gamer Pro",
+                    time: "19h ago"
+                }
+            ],
+            business: [
+                {
+                    category: "Markets",
+                    title: "Stock Markets Reach All-Time High Amid Rate Cut Hopes",
+                    excerpt: "S&P 500 crosses 5,500 for first time as inflation cools.",
+                    source: "Market Watch",
+                    time: "2h ago"
+                },
+                {
+                    category: "Mergers",
+                    title: "Major Merger Creates New Market Leader",
+                    excerpt: "Two industry giants announce $45 billion deal that will reshape the competitive landscape.",
+                    source: "Financial Times",
+                    time: "4h ago"
+                },
+                {
+                    category: "Startups",
+                    title: "AI Startup Reaches $10 Billion Valuation in 18 Months",
+                    excerpt: "Unprecedented growth for company specializing in enterprise automation.",
+                    source: "Venture Beat",
+                    time: "6h ago"
+                },
+                {
+                    category: "Retail",
+                    title: "E-Commerce Giant Reports Record Holiday Sales",
+                    excerpt: "Black Friday weekend results exceed expectations despite economic concerns.",
+                    source: "Retail News",
+                    time: "8h ago"
+                },
+                {
+                    category: "Energy",
+                    title: "Renewables Now Account for 40% of Global Electricity",
+                    excerpt: "Solar and wind lead transformation of world's power grids.",
+                    source: "Energy Report",
+                    time: "10h ago"
+                },
+                {
+                    category: "Automotive",
+                    title: "EV Sales Surpass 50% Market Share in Key Countries",
+                    excerpt: "Norway, Sweden and Netherlands lead transition from gas vehicles.",
+                    source: "Auto Future",
+                    time: "12h ago"
+                },
+                {
+                    category: "Finance",
+                    title: "Central Banks Coordinate Global Interest Rate Cuts",
+                    excerpt: "Unprecedented move aims to prevent synchronized recession.",
+                    source: "Global Finance",
+                    time: "14h ago"
+                },
+                {
+                    category: "Real Estate",
+                    title: "Commercial Property Values Drop 30% in Major Cities",
+                    excerpt: "Remote work continues to impact office space demand.",
+                    source: "Property News",
+                    time: "16h ago"
+                },
+                {
+                    category: "Tech",
+                    title: "Chipmaker Announces $100 Billion Expansion Plan",
+                    excerpt: "Massive investment to meet growing demand for advanced semiconductors.",
+                    source: "Tech Investor",
+                    time: "18h ago"
+                },
+                {
+                    category: "Labor",
+                    title: "Four-Day Work Week Gains Traction Nationwide",
+                    excerpt: "80% of companies in trial say they won't return to five days.",
+                    source: "Workplace Trends",
+                    time: "20h ago"
+                }
+            ],
+            entertainment: [
+                {
+                    category: "Movies",
+                    title: "Blockbuster Franchise Announces Final Trilogy",
+                    excerpt: "Studio confirms three more films to conclude 20-year saga.",
+                    source: "Film Daily",
+                    time: "1h ago"
+                },
+                {
+                    category: "Music",
+                    title: "Legendary Band Announces Reunion Tour After 15 Years",
+                    excerpt: "Original members will perform classic album in its entirety.",
+                    source: "Music Now",
+                    time: "3h ago"
+                },
+                {
+                    category: "Television",
+                    title: "Streaming Service Cancels Hit Show After 5 Seasons",
+                    excerpt: "Surprise decision leaves fans petitioning for renewal.",
+                    source: "TV Guide",
+                    time: "5h ago"
+                },
+                {
+                    category: "Celebrity",
+                    title: "Celebrity Wedding Breaks Internet Records",
+                    excerpt: "Social media buzz surpasses royal wedding engagement.",
+                    source: "Star News",
+                    time: "7h ago"
+                },
+                {
+                    category: "Gaming",
+                    title: "Most Anticipated Game Release Breaks Pre-Order Records",
+                    excerpt: "10 million copies sold before launch day.",
+                    source: "GameSpot",
+                    time: "9h ago"
+                },
+                {
+                    category: "Awards",
+                    title: "Controversy Erupts Over Major Award Nominations",
+                    excerpt: "Notable snubs prompt calls for voting reform.",
+                    source: "Entertainment Tonight",
+                    time: "11h ago"
+                },
+                {
+                    category: "Streaming",
+                    title: "New Streaming Platform Launches with Exclusive Content",
+                    excerpt: "Tech giant enters crowded market with unique pricing model.",
+                    source: "Digital Content",
+                    time: "13h ago"
+                },
+                {
+                    category: "Theater",
+                    title: "Broadway Show Breaks Box Office Records",
+                    excerpt: "Musical adaptation surpasses $2 million in weekly gross.",
+                    source: "Stage Right",
+                    time: "15h ago"
+                },
+                {
+                    category: "Books",
+                    title: "Author's Final Novel Sells 1 Million Copies in First Day",
+                    excerpt: "Posthumous release becomes fastest-selling book in history.",
+                    source: "Literary Review",
+                    time: "17h ago"
+                },
+                {
+                    category: "Art",
+                    title: "Digital Artwork Sells for Record $100 Million",
+                    excerpt: "NFT collection breaks previous record by wide margin.",
+                    source: "Art World",
+                    time: "19h ago"
+                }
+            ]
+        };
+
+        // Function to show news for a specific category
+        function showCategory(category) {
+            // Update active link in sidebar
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update page title
+            const categoryTitles = {
+                'headlines': "Today's Headlines",
+                'discover': "Discover Trending Stories",
+                'business': "Business News",
+                'technology': "Technology Updates",
+                'health': "Health & Medicine",
+                'sports': "Sports News",
+                'entertainment': "Entertainment",
+                'bookmarks': "Saved Bookmarks"
+            };
+            document.getElementById('category-title').textContent = categoryTitles[category];
+            
+            // Clear existing news
+            const newsContainer = document.getElementById('news-container');
+            newsContainer.innerHTML = '';
+            
+            // Get news for selected category
+            const categoryNews = newsData[category] || newsData.headlines;
+            
+            // Add news articles to container
+            categoryNews.forEach(article => {
+                const articleHTML = `
+                    <article class="news-card">
+                        <span class="news-category">${article.category}</span>
+                        <h3 class="news-title">${article.title}</h3>
+                        <p class="news-excerpt">${article.excerpt}</p>
+                        <div class="news-meta">
+                            <span>${article.source}</span>
+                            <span>${article.time}</span>
+                        </div>
+                    </article>
+                `;
+                newsContainer.insertAdjacentHTML('beforeend', articleHTML);
+            });
+        }
+
+        // Initialize with headlines
+        document.addEventListener('DOMContentLoaded', function() {
+            showCategory('headlines');
+        });
+    </script>
+</body>
+</html>
